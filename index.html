@@ -79,6 +79,26 @@ var baseWeatherRefresh=refreshMarineWeather;refreshMarineWeather=async function(
   window.judge=function(){var select=document.getElementById('fish'),name=select.value,length=Number(document.getElementById('size').value),aliases={'\uAD11\uC5B4':'\uB113\uCE58(\uAD11\uC5B4)','\uC6B0\uB7ED':'\uC870\uD53C\uBCFC\uB77D(\uC6B0\uB7ED)','\uBB38\uC5B4':'\uCC38\uBB38\uC5B4(\uB3CC\uBB38\uC5B4)'},item=official[aliases[name]||name],panel=document.getElementById('result');if(!item){panel.innerHTML='<div class="symbol" style="background:#e39d37">!</div><div><b>\uAE30\uC900 \uD655\uC778\uC774 \uD544\uC694\uD569\uB2C8\uB2E4</b><small>\uC81C\uACF5\uD55C \uACF5\uC2DD \uC790\uB8CC\uC5D0 \uC5B4\uC885\uBCC4 \uAE30\uC900\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.</small></div>';return}var body=item.min&&Number.isFinite(length)?(length>=item.min?'\uCCB4\uC7A5 \uCC38\uACE0 \uAE30\uC900\uC744 \uCD08\uACFC\uD588\uC2B5\uB2C8\uB2E4.':'\uAE08\uC9C0\uCCB4\uC7A5 \uCC38\uACE0 \uAE30\uC900\uC5D0 \uD574\uB2F9\uD569\uB2C8\uB2E4. \uBC29\uC0DD\uD558\uC138\uC694.'):'\uCCB4\uC7A5 \uAE30\uC900\uC740 \uC81C\uACF5 \uC790\uB8CC\uC5D0 \uBA85\uC2DC\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.';panel.innerHTML='<div class="symbol" style="background:#e39d37">!</div><div><b>\uACF5\uC2DD \uC790\uB8CC \uCC38\uACE0 \uACB0\uACFC</b><small>'+body+' \uAE08\uC5B4\uAE30: '+item.season+'<br>\uD604\uD589 \uBC95\uB839\uACFC \uC9C0\uC790\uCCB4 \uACE0\uC2DC\uB97C \uBC18\uB4DC\uC2DC \uB2E4\uC2DC \uD655\uC778\uD558\uC138\uC694.</small></div>';panel.style.background='#fff8e9'};
 })();
 </script>
+<script>
+/* Approximate reference points for the published Busan control-zone list. */
+(function(){
+  var controlZones=[
+    ['감천항 도류제',35.0778,129.0125],['거북섬·암남항',35.0704,129.0157],['부산항대교 일자방파제',35.1085,129.0555],
+    ['파크하얏트~아델리스',35.1591,129.1510],['청사포항',35.1583,129.1900],['신호대교',35.0840,128.8788],
+    ['민락항',35.1532,129.1302],['민락동 테트라포드',35.1503,129.1280],['남천동~광안대교',35.1460,129.1180],
+    ['대변항 월드컵방파제',35.2255,129.2272],['학리 동방파제',35.1945,129.2170]
+  ];
+  function distance(a,b,c,d){var r=Math.PI/180,x=(c-a)*r,y=(d-b)*r;var q=Math.sin(x/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin(y/2)**2;return 6371000*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q));}
+  function renderZones(){if(!window.busanMap||window.controlZoneLayer)return;window.controlZoneLayer=L.layerGroup().addTo(window.busanMap);controlZones.forEach(function(z){L.circleMarker([z[1],z[2]],{radius:7,color:'#c43b35',fillColor:'#eb655d',fillOpacity:.9,weight:2}).addTo(window.controlZoneLayer).bindPopup('낚시통제구역 참고 위치: '+z[0]);});}
+  function evaluatePosition(lat,lng){renderZones();var nearest=controlZones.map(function(z){return {name:z[0],meters:distance(lat,lng,z[1],z[2])};}).sort(function(a,b){return a.meters-b.meters})[0],status=document.getElementById('zoneStatus');if(!status)return;var near=nearest.meters<=300;status.innerHTML='<div class="symbol" style="background:'+(near?'#dc625b':'#16a56d')+'">'+(near?'!':'✓')+'</div><div><b>'+(near?'낚시통제구역 인근입니다':'통제구역 참고 위치에서 벗어났습니다')+'</b><small>가장 가까운 참고 지점: '+nearest.name+' ('+Math.round(nearest.meters)+'m). '+(near?'현장 표지판을 확인하고 낚시를 피하세요.':'허용구역의 법적 확정 판정은 아닙니다. 현장 표지판과 최신 고시를 확인하세요.')+'</small></div>';status.style.background=near?'#fff0ef':'#edfcf4';}
+  function requestZoneCheck(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(function(p){var lat=p.coords.latitude,lng=p.coords.longitude;renderZones();evaluatePosition(lat,lng);},function(){},{enableHighAccuracy:true,timeout:15000,maximumAge:300000});}
+  var oldShow=window.showMapLocation;
+  window.showMapLocation=function(){if(typeof oldShow==='function')oldShow();setTimeout(requestZoneCheck,250);};
+  var oldView=window.view;
+  window.view=function(id,button){if(typeof oldView==='function')oldView(id,button);if(id==='area')setTimeout(function(){renderZones();requestZoneCheck();},250);};
+  setTimeout(function(){renderZones();requestZoneCheck();},2200);
+})();
+</script>
 <style>@keyframes rollDice{0%{transform:rotate(0) scale(1)}25%{transform:rotate(140deg) scale(1.2)}50%{transform:rotate(320deg) translateY(-14px)}75%{transform:rotate(520deg) scale(1.1)}100%{transform:rotate(720deg) scale(1)}}.dice-roll{display:none;text-align:center;font-size:66px;margin:4px 0 16px}.dice-roll.on{display:block;animation:rollDice .72s ease-in-out}</style>
 <script>
 setTimeout(function(){var page=document.getElementById('fortune');if(!page)return;var dice=document.createElement('div');dice.className='dice-roll';dice.id='fortuneDice';dice.innerHTML='&#127922;';page.insertBefore(dice,page.firstChild);var originalDraw=draw;draw=function(){dice.classList.remove('on');void dice.offsetWidth;dice.classList.add('on');document.getElementById('fortuneText').textContent='\uD589\uC6B4\uC744 \uB1D1\uB294 \uC911\uC785\uB2C8\uB2E4...';setTimeout(function(){originalDraw();dice.classList.remove('on')},720)}} ,0);

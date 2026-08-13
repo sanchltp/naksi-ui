@@ -121,3 +121,31 @@ window.identifyFishImage=async function(file){var dataUrl=await new Promise(func
 <script>
 setTimeout(function(){var button=document.getElementById('analyzePhoto');if(!button)return;button.onclick=async function(){var result=document.getElementById('photoResult'),file=document.getElementById('fishPhoto').files[0];if(!file)return;result.innerHTML='<h2>\uBD84\uC11D \uACB0\uACFC</h2><p>AI \uBD84\uC11D \uC11C\uBC84\uC5D0 \uC5F0\uACB0\uD558\uB294 \uC911\uC785\uB2C8\uB2E4...</p>';try{var answer=await window.identifyFishImage(file);result.innerHTML='<h2>\uBD84\uC11D \uACB0\uACFC</h2><p>'+answer+'</p>'}catch(e){var message=e.message==='Failed to fetch'?'AI \uBD84\uC11D \uC11C\uBC84\uC5D0 \uC5F0\uACB0\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uC11C\uBC84\uAC00 \uC2E4\uD589 \uC911\uC778\uC9C0 \uD655\uC778\uD558\uC138\uC694.':'\uBD84\uC11D \uC624\uB958: '+e.message;result.innerHTML='<h2>\uBD84\uC11D \uACB0\uACFC</h2><p style="line-height:1.7">'+message+'</p>'}}},0);
 </script>
+<script>
+/* Keep the official control-zone list visible even after the map refreshes. */
+(function(){
+  function showControlZones(){
+    var area=document.getElementById('area');
+    if(!area || document.getElementById('officialControlZones')) return;
+    var card=document.createElement('div');
+    card.className='card'; card.id='officialControlZones';
+    card.innerHTML='<h2>🚫 부산 낚시통제구역</h2>'+
+      '<p style="margin:0 0 10px;color:#59757c;font-size:12px;line-height:1.65">공식 현황 자료(2024년 12월 기준)의 6개 구·군, 13개 구역입니다. 아래 구역에서는 낚시가 통제됩니다.</p>'+
+      '<div style="font-size:12px;line-height:1.8;color:#254c55">'+
+      '<b>서구</b> · 감천항 도류제 및 부속시설 · 거북섬 및 인근 T.T.P · 암남항~오션파크 T.T.P<br>'+
+      '<b>영도구</b> · 부산항대교 일자방파제 및 하부공간 전체<br>'+
+      '<b>해운대구</b> · 파크하얏트~더샵 아델리스 · 청사포항 일원 테트라포드 전체<br>'+
+      '<b>강서구</b> · 신호동 신호대교 상부 전체<br>'+
+      '<b>수영구</b> · 민락항 일원 · 민락동 테트라포드 · 남천동~광안대교 테트라포드 2개 구역<br>'+
+      '<b>기장군</b> · 대변항 월드컵 방파제 테트라포드 · 한림수산물관광매장터~학리 동방파제 내측</div>'+
+      '<p style="font-size:11px;line-height:1.6;color:#71898e;margin:12px 0 0">출처: 부산광역시 「낚시통제구역 현황」. 현장 표지판과 관할 구·군의 최신 고시를 우선 확인하세요.</p>';
+    area.insertBefore(card,area.firstChild);
+  }
+  var previousView=window.view;
+  window.view=function(id,button){
+    if(typeof previousView==='function') previousView(id,button);
+    if(id==='area') setTimeout(showControlZones,80);
+  };
+  setTimeout(showControlZones,1800);
+})();
+</script>
